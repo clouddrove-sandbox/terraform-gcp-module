@@ -1,0 +1,210 @@
+variable "environment" {
+  type        = string
+  default     = ""
+}
+
+variable "label_order" {
+  type        = list(any)
+  default     = []
+}
+
+variable "project" {
+  description = "The project ID to host the cluster in"
+  type        = string
+}
+
+variable "location" {
+  description = "The location (region or zone) to host the cluster in"
+  type        = string
+}
+
+variable "name" {
+  description = "The name of the cluster"
+  type        = string
+}
+
+variable "network" {
+  type        = string
+}
+
+variable "subnetwork" {
+  type        = string
+  default = ""
+}
+
+variable "cluster_secondary_range_name" {
+  type        = string
+  default = ""
+}
+
+variable "description" {
+  type        = string
+  default     = ""
+}
+
+variable "kubernetes_version" {
+  type        = string
+  default     = "latest"
+}
+
+variable "logging_service" {
+  type        = string
+  default     = "logging.googleapis.com/kubernetes"
+}
+
+variable "monitoring_service" {
+  type        = string
+  default     = "monitoring.googleapis.com/kubernetes"
+}
+
+variable "horizontal_pod_autoscaling" {
+  type        = bool
+  default     = true
+}
+
+variable "http_load_balancing" {
+  type        = bool
+  default     = true
+}
+
+variable "enable_private_nodes" {
+  type        = bool
+  default     = false
+}
+
+variable "disable_public_endpoint" {
+  type        = bool
+  default     = false
+}
+
+variable "master_ipv4_cidr_block" {
+  type        = string
+  default     = ""
+}
+
+variable "network_project" {
+  type        = string
+  default     = ""
+}
+
+variable "master_authorized_networks_config" {
+  description = <<EOF
+  The desired configuration options for master authorized networks. Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists)
+  ### example format ###
+  master_authorized_networks_config = [{
+    cidr_blocks = [{
+      cidr_block   = "10.0.0.0/8"
+      display_name = "example_network"
+    }],
+  }]
+EOF
+  type        = list(any)
+  default     = []
+}
+
+variable "maintenance_start_time" {
+  type        = string
+  default     = "05:00"
+}
+
+variable "stub_domains" {
+  type        = map(string)
+  default     = {}
+}
+
+variable "non_masquerade_cidrs" {
+  type        = list(string)
+  default     = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+}
+
+variable "ip_masq_resync_interval" {
+  type        = string
+  default     = "60s"
+}
+
+variable "ip_masq_link_local" {
+  type        = bool
+  default     = false
+}
+
+variable "alternative_default_service_account" {
+  type        = string
+  default     = null
+}
+
+variable "resource_labels" {
+  type        = map(any)
+  default     = {}
+}
+
+variable "enable_legacy_abac" {
+  type        = bool
+  default     = false
+}
+
+variable "enable_network_policy" {
+  type        = bool
+  default     = true
+}
+
+variable "basic_auth_username" {
+  type        = string
+  default     = ""
+}
+
+variable "basic_auth_password" {
+  type        = string
+  default     = ""
+}
+
+variable "enable_client_certificate_authentication" {
+  type        = bool
+  default     = false
+}
+
+variable "gsuite_domain_name" {
+  type        = string
+  default     = null
+}
+
+variable "secrets_encryption_kms_key" {
+  type        = string
+  default     = null
+}
+
+variable "enable_vertical_pod_autoscaling" {
+  type        = string
+  default     = false
+}
+
+variable "services_secondary_range_name" {
+  type        = string
+  default     = null
+}
+
+variable "enable_workload_identity" {
+  default     = false
+  type        = bool
+}
+
+variable "service_account_roles" {
+  type        = list(string)
+  default     = []
+}
+
+variable "workload_identity_config" {
+  type        = list(any)
+  default     = []
+
+}
+
+variable "authenticator_groups_config" {
+  type = string
+  default = ""
+}
+
+variable "identity_namespace" {
+  type        = string
+  default     = ""
+
+}
