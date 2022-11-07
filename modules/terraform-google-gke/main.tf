@@ -23,17 +23,17 @@ resource "google_container_cluster" "cluster" {
   network    = var.network
   subnetwork = var.subnetwork
 
-  logging_service    = var.logging_service
-  monitoring_service = var.monitoring_service
-  min_master_version = local.kubernetes_version
-  enable_legacy_abac = var.enable_legacy_abac
+  logging_service          = var.logging_service
+  monitoring_service       = var.monitoring_service
+  min_master_version       = local.kubernetes_version
+  enable_legacy_abac       = var.enable_legacy_abac
   remove_default_node_pool = true
-  initial_node_count = 1
+  initial_node_count       = 1
 
 
   dynamic "node_config" {
     for_each = [
-    for x in [var.alternative_default_service_account] : x if var.alternative_default_service_account != null
+      for x in [var.alternative_default_service_account] : x if var.alternative_default_service_account != null
     ]
 
     content {
@@ -103,7 +103,7 @@ resource "google_container_cluster" "cluster" {
 
   dynamic "authenticator_groups_config" {
     for_each = [
-    for x in [var.gsuite_domain_name] : x if var.gsuite_domain_name != null
+      for x in [var.gsuite_domain_name] : x if var.gsuite_domain_name != null
     ]
 
     content {
@@ -113,7 +113,7 @@ resource "google_container_cluster" "cluster" {
 
   dynamic "database_encryption" {
     for_each = [
-    for x in [var.secrets_encryption_kms_key] : x if var.secrets_encryption_kms_key != null
+      for x in [var.secrets_encryption_kms_key] : x if var.secrets_encryption_kms_key != null
     ]
 
     content {
@@ -121,14 +121,14 @@ resource "google_container_cluster" "cluster" {
       key_name = database_encryption.value
     }
   }
-//
-//  dynamic "workload_identity_config" {
-//    for_each = var.workload_identity_config
-//
-//   content {
-//    identity_namespace = "clouddrove.svc.id.goog"
-//   }
-//  }
+  //
+  //  dynamic "workload_identity_config" {
+  //    for_each = var.workload_identity_config
+  //
+  //   content {
+  //    identity_namespace = "clouddrove.svc.id.goog"
+  //   }
+  //  }
 
   resource_labels = var.resource_labels
 }
@@ -151,3 +151,93 @@ data "google_container_engine_versions" "location" {
   location = var.location
   project  = var.project
 }
+
+
+resource "google_container_node_pool" "node_pool" {
+  provider = google-beta
+
+  name               = var.node_name
+  project            = var.project
+  location           = var.location
+  cluster            = var.cluster
+  initial_node_count = var.initial_node_count
+
+  autoscaling {
+    min_node_count  = var.min_node_count
+    max_node_count  = var.max_node_count
+    location_policy = var.location_policy
+  }
+
+  management {
+    auto_repair  = var.auto_repair
+    auto_upgrade = var.auto_upgrade
+  }
+
+  node_config {
+    image_type   = var.image_type
+    machine_type = var.machine_type
+
+    labels = {
+      all-pools-example = "true"
+    }
+
+
+    disk_size_gb = var.disk_size_gb
+    disk_type    = var.disk_type
+    preemptible  = var.preemptible
+
+
+  }
+
+  lifecycle {
+    ignore_changes        = [initial_node_count]
+    create_before_destroy = false
+
+  }
+
+  timeouts {
+    create = var.cluster_create_timeouts
+    update = var.cluster_update_timeouts
+    delete = var.cluster_delete_timeouts
+  }
+}
+
+resource "null_resource" "configure_kubectl" {
+  provisioner "local-exec" {
+    command = "gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
+
+    environment = {
+      KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""
+    }
+  }
+
+  depends_on = [google_container_node_pool.node_pool]
+}
+
+data "google_client_config" "client" {}
+data "google_client_openid_userinfo" "terraform_user" {}
+
+resource "kubernetes_cluster_role_binding" "user" {
+  metadata {
+    name = "admin-user"
+  }
+
+  role_ref {
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "User"
+    name      = data.google_client_openid_userinfo.terraform_user.email
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "Group"
+    name      = "system:masters"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
+

@@ -6,7 +6,6 @@ provider "google" {
 }
 
 provider "kubernetes" {
-
   host                   = data.template_file.gke_host_endpoint.rendered
   token                  = data.template_file.access_token.rendered
   cluster_ca_certificate = data.template_file.cluster_ca_certificate.rendered
@@ -35,7 +34,26 @@ module "subnet" {
   label_order = ["name", "environment"]
 
   private_ip_google_access = true
-  network   = module.vpc.vpc.id
+  network                  = module.vpc.vpc.id
+}
+
+module "kms" {
+  source     = "../modules/terraform-google-kms"
+  project_id = "clouddrove"
+  keyring    = "dev-key"
+  location   = "global"
+  keys       = []
+  prevent_destroy = false
+}
+
+
+module "firewall-ssh" {
+  source        = "../modules/terraform-google-firewall"
+  name          = "ssh"
+  network       = module.vpc.vpc.id
+  protocol      = "tcp"
+  ports         = ["22"]
+  source_ranges = ["0.0.0.0/0"]
 }
 
 data "google_client_config" "client" {}
@@ -44,7 +62,6 @@ data "google_client_openid_userinfo" "terraform_user" {}
 module "gke_cluster" {
   source = "../modules/terraform-google-gke"
 
-
   name        = "gke"
   environment = "cluster"
   label_order = ["name", "environment"]
@@ -52,30 +69,26 @@ module "gke_cluster" {
   project  = var.gcp_project_id
   location = var.location
 
-  network                      = module.vpc.vpc.id
-  subnetwork                   = module.subnet.public_subnetwork_name
-//  cluster_secondary_range_name = ""
-//  services_secondary_range_name = ""
+
+  network    = module.vpc.vpc.id
+  subnetwork = module.subnet.public_subnetwork_name
+  //  cluster_secondary_range_name = ""
+  //  services_secondary_range_name = ""
 
   disable_public_endpoint = "false"
 
   resource_labels = {
     environment = "testing"
   }
-}
+
+  node_name = "node-poole"
+  cluster  = module.gke_cluster.name
+  initial_node_count = "1"
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE A NODE POOL
 # ---------------------------------------------------------------------------------------------------------------------
-
-resource "google_container_node_pool" "node_pool" {
-  provider = google-beta
-
-  name     = "node-pool"
-  project  = var.gcp_project_id
-  location = var.location
-  cluster  = module.gke_cluster.name
-  initial_node_count = "1"
 
   autoscaling {
     min_node_count = "2"
@@ -105,54 +118,13 @@ resource "google_container_node_pool" "node_pool" {
 
   }
 
-  lifecycle {
-    ignore_changes = [initial_node_count ]
-    create_before_destroy = false
-
-  }
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-    delete = "30m"
-  }
-}
-
-resource "null_resource" "configure_kubectl" {
-  provisioner "local-exec" {
-    command = "gcloud beta container clusters get-credentials ${module.gke_cluster.name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
-
-    environment = {
-      KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""
+    timeouts {
+      create = "30m"
+      update = "30m"
+      delete = "30m"
     }
   }
 
-  depends_on = [google_container_node_pool.node_pool]
-}
-
-resource "kubernetes_cluster_role_binding" "user" {
-  metadata {
-    name = "admin-user"
-  }
-
-  role_ref {
-    kind      = "ClusterRole"
-    name      = "cluster-admin"
-    api_group = "rbac.authorization.k8s.io"
-  }
-
-  subject {
-    kind      = "User"
-    name      = data.google_client_openid_userinfo.terraform_user.email
-    api_group = "rbac.authorization.k8s.io"
-  }
-
-  subject {
-    kind      = "Group"
-    name      = "system:masters"
-    api_group = "rbac.authorization.k8s.io"
-  }
-}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -179,10 +151,7 @@ module "gke_service_account" {
   environment = "service_account"
   label_order = ["name", "environment"]
 
-  project     = var.gcp_project_id
-}
-
-resource "random_string" "suffix" {
+  project = var.gcp_project_id
   length  = 16
   special = false
   upper   = false

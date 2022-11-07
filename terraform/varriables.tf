@@ -43,7 +43,7 @@ variable "override_default_node_pool_service_account" {
 
 variable "location" {
   description = "The location (region or zone) of the GKE cluster."
-  default = "europe-west3"
+  default     = "europe-west3"
   type        = string
 }
 

@@ -61,10 +61,10 @@ variable "mtu" {
   type        = string
   default     = ""
 
-//  validation {
-//    condition     = var.mtu >= 1460 && var.mtu <= 1500
-//    error_message = "The mtu expects a value between '1460' and '1500'."
-//  }
+  //  validation {
+  //    condition     = var.mtu >= 1460 && var.mtu <= 1500
+  //    error_message = "The mtu expects a value between '1460' and '1500'."
+  //  }
 }
 
 # ------------------------------------------------------------------------------

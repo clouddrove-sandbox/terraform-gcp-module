@@ -16,7 +16,7 @@ variable "project" {
 }
 
 variable "name" {
-  type        = string
+  type    = string
   default = ""
 }
 
@@ -41,4 +41,19 @@ variable "all_service_account_roles" {
   type        = list(any)
   description = ""
   default     = []
+}
+
+variable "upper" {
+  type    = bool
+  default = false
+}
+
+variable "special" {
+  type    = bool
+  default = false
+}
+
+variable "length" {
+  type    = number
+  default = 1
 }

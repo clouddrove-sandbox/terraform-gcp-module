@@ -26,3 +26,9 @@ resource "google_project_iam_member" "project" {
   role    = "roles/editor"
   member  = "user:prashant.yadav@clouddrove.com"
 }
+
+resource "random_string" "suffix" {
+  length  = var.length
+  special = var.special
+  upper   = var.upper
+}

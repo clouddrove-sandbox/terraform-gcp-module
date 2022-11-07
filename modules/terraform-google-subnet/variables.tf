@@ -11,8 +11,8 @@ variable "label_order" {
 }
 
 variable "network" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "name" {
