@@ -38,11 +38,11 @@ module "subnet" {
 }
 
 module "kms" {
-  source     = "../modules/terraform-google-kms"
-  project_id = "clouddrove"
-  keyring    = "dev-key"
-  location   = "global"
-  keys       = []
+  source          = "../modules/terraform-google-kms"
+  project_id      = "clouddrove"
+  keyring         = "dev-key"
+  location        = "global"
+  keys            = []
   prevent_destroy = false
 }
 
@@ -81,18 +81,18 @@ module "gke_cluster" {
     environment = "testing"
   }
 
-  node_name = "node-poole"
-  cluster  = module.gke_cluster.name
+  node_name          = "node-poole"
+  cluster            = module.gke_cluster.name
   initial_node_count = "1"
 
 
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE A NODE POOL
-# ---------------------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------------------
+  # CREATE A NODE POOL
+  # ---------------------------------------------------------------------------------------------------------------------
 
   autoscaling {
-    min_node_count = "2"
-    max_node_count = "7"
+    min_node_count  = "2"
+    max_node_count  = "7"
     location_policy = "BALANCED"
   }
 
@@ -118,12 +118,12 @@ module "gke_cluster" {
 
   }
 
-    timeouts {
-      create = "30m"
-      update = "30m"
-      delete = "30m"
-    }
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
   }
+}
 
 
 

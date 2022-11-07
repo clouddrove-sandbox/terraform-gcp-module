@@ -223,13 +223,13 @@ variable "gcp_region" {
 
 
 variable "cluster_name" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "node_name" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 

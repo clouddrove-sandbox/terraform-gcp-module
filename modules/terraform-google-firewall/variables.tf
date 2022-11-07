@@ -11,8 +11,8 @@ variable "label_order" {
 }
 
 variable "name" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "network" {
@@ -20,18 +20,18 @@ variable "network" {
   default = ""
 }
 
-variable protocol {
-  type = string
-  default = ""
+variable "protocol" {
+  type        = string
+  default     = ""
   description = "The name of the protocol to allow"
 }
 
 variable "ports" {
-  type        = list(any)
-  default     = []
+  type    = list(any)
+  default = []
 }
 
 variable "source_ranges" {
-  type        = list(any)
-  default     = []
+  type    = list(any)
+  default = []
 }
