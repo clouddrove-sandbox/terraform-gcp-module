@@ -49,7 +49,11 @@ module "kms" {
 
 module "firewall-ssh" {
   source        = "../modules/terraform-google-firewall"
-  name          = "ssh"
+
+  name        = "ssh"
+  environment = "security"
+  label_order = ["name", "environment"]
+
   network       = module.vpc.vpc.id
   protocol      = "tcp"
   ports         = ["22"]
@@ -62,15 +66,15 @@ data "google_client_openid_userinfo" "terraform_user" {}
 module "gke_cluster" {
   source = "../modules/terraform-google-gke"
 
-  name = "gke"
+  name        = "gke"
   environment = "cluster"
   label_order = ["name", "environment"]
 
-  project = var.gcp_project_id
+  project  = var.gcp_project_id
   location = var.location
 
 
-  network = module.vpc.vpc.id
+  network    = module.vpc.vpc.id
   subnetwork = module.subnet.public_subnetwork_name
   //  cluster_secondary_range_name = ""
   //  services_secondary_range_name = ""
@@ -89,15 +93,15 @@ module "gke_cluster" {
 resource "google_container_node_pool" "node_pool" {
   provider = google-beta
 
-  name     = "node-pool"
-  project  = var.gcp_project_id
-  location = var.location
-  cluster  = module.gke_cluster.name
+  name               = "node-pool"
+  project            = var.gcp_project_id
+  location           = var.location
+  cluster            = module.gke_cluster.name
   initial_node_count = "1"
 
   autoscaling {
-    min_node_count = "2"
-    max_node_count = "7"
+    min_node_count  = "2"
+    max_node_count  = "7"
     location_policy = "BALANCED"
   }
 
@@ -124,7 +128,7 @@ resource "google_container_node_pool" "node_pool" {
   }
 
   lifecycle {
-    ignore_changes = [initial_node_count ]
+    ignore_changes        = [initial_node_count]
     create_before_destroy = false
 
   }
