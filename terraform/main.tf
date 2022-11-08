@@ -86,17 +86,27 @@ module "gke_cluster" {
   }
   cluster            = module.gke_cluster.name
   initial_node_count = "1"
+  ###############################  autoscaling  #########################
+
   min_node_count     = "2"
   max_node_count     = "7"
   location_policy    = "BALANCED"
+
+  ###############################  ######management #####################
+
   auto_repair        = "true"
   auto_upgrade       = "false"
+
+##################################  node_config ##########################
 
   image_type              = "cos_containerd"
   machine_type            = "e2-medium"
   disk_size_gb            = "50"
   disk_type               = "pd-standard"
   preemptible             = false
+
+  ###############################  timeouts ###################################
+
   cluster_create_timeouts = "30m"
   cluster_update_timeouts = "30m"
   cluster_delete_timeouts = "30m"
