@@ -40,8 +40,8 @@ module "subnet" {
 module "kms" {
   source          = "../modules/terraform-google-kms"
   project_id      = "clouddrove"
-  keyring         = "dev-key"
-  location        = "global"
+  keyring         = "prod-key"
+  location        = var.location
   keys            = []
   prevent_destroy = false
 }
@@ -62,15 +62,15 @@ data "google_client_openid_userinfo" "terraform_user" {}
 module "gke_cluster" {
   source = "../modules/terraform-google-gke"
 
-  name        = "gke"
+  name = "gke"
   environment = "cluster"
   label_order = ["name", "environment"]
 
-  project  = var.gcp_project_id
+  project = var.gcp_project_id
   location = var.location
 
 
-  network    = module.vpc.vpc.id
+  network = module.vpc.vpc.id
   subnetwork = module.subnet.public_subnetwork_name
   //  cluster_secondary_range_name = ""
   //  services_secondary_range_name = ""
@@ -80,19 +80,24 @@ module "gke_cluster" {
   resource_labels = {
     environment = "testing"
   }
+}
 
-  node_name          = "node-poole"
-  cluster            = module.gke_cluster.name
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE A NODE POOL
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "google_container_node_pool" "node_pool" {
+  provider = google-beta
+
+  name     = "node-pool"
+  project  = var.gcp_project_id
+  location = var.location
+  cluster  = module.gke_cluster.name
   initial_node_count = "1"
 
-
-  # ---------------------------------------------------------------------------------------------------------------------
-  # CREATE A NODE POOL
-  # ---------------------------------------------------------------------------------------------------------------------
-
   autoscaling {
-    min_node_count  = "2"
-    max_node_count  = "7"
+    min_node_count = "2"
+    max_node_count = "7"
     location_policy = "BALANCED"
   }
 
@@ -118,6 +123,12 @@ module "gke_cluster" {
 
   }
 
+  lifecycle {
+    ignore_changes = [initial_node_count ]
+    create_before_destroy = false
+
+  }
+
   timeouts {
     create = "30m"
     update = "30m"
@@ -125,6 +136,41 @@ module "gke_cluster" {
   }
 }
 
+resource "null_resource" "configure_kubectl" {
+  provisioner "local-exec" {
+    command = "gcloud beta container clusters get-credentials ${module.gke_cluster.name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
+
+    environment = {
+      KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""
+    }
+  }
+
+  depends_on = [google_container_node_pool.node_pool]
+}
+
+resource "kubernetes_cluster_role_binding" "user" {
+  metadata {
+    name = "admin-user"
+  }
+
+  role_ref {
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "User"
+    name      = data.google_client_openid_userinfo.terraform_user.email
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "Group"
+    name      = "system:masters"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -143,6 +189,7 @@ data "template_file" "access_token" {
 data "template_file" "cluster_ca_certificate" {
   template = module.gke_cluster.cluster_ca_certificate
 }
+
 
 module "gke_service_account" {
   source = "../modules/terraform-google-service-account"
