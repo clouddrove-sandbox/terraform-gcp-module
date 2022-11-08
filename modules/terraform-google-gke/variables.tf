@@ -211,20 +211,20 @@ variable "identity_namespace" {
 
 variable "gcp_project_id" {
   type        = string
-  default     = ""
+  default     = "clouddrove"
   description = "Google Cloud project ID"
 }
 
 variable "gcp_region" {
   type        = string
-  default     = ""
+  default     = "europe-west3"
   description = "Google Cloud region"
 }
 
 
 variable "cluster_name" {
   type    = string
-  default = ""
+  default = "gke"
 }
 
 variable "node_name" {

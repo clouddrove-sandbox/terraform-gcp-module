@@ -153,91 +153,92 @@ data "google_container_engine_versions" "location" {
 }
 
 
-//resource "google_container_node_pool" "node_pool" {
-//  provider = google-beta
-//
-//  name               = var.node_name
-//  project            = var.project
-//  location           = var.location
-//  cluster            = var.cluster
-//  initial_node_count = var.initial_node_count
-//
-//  autoscaling {
-//    min_node_count  = var.min_node_count
-//    max_node_count  = var.max_node_count
-//    location_policy = var.location_policy
-//  }
-//
-//  management {
-//    auto_repair  = var.auto_repair
-//    auto_upgrade = var.auto_upgrade
-//  }
-//
-//  node_config {
-//    image_type   = var.image_type
-//    machine_type = var.machine_type
-//
-//    labels = {
-//      all-pools-example = "true"
-//    }
-//
-//
-//    disk_size_gb = var.disk_size_gb
-//    disk_type    = var.disk_type
-//    preemptible  = var.preemptible
-//
-//
-//  }
-//
-//  lifecycle {
-//    ignore_changes        = [initial_node_count]
-//    create_before_destroy = false
-//
-//  }
-//
-//  timeouts {
-//    create = var.cluster_create_timeouts
-//    update = var.cluster_update_timeouts
-//    delete = var.cluster_delete_timeouts
-//  }
-//}
-//
-//resource "null_resource" "configure_kubectl" {
-//  provisioner "local-exec" {
-//    command = "gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
-//
-//    environment = {
-//      KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""
-//    }
-//  }
-//
-////  depends_on = [google_container_node_pool.node_pool]
-//}
-//
-//data "google_client_config" "client" {}
-//data "google_client_openid_userinfo" "terraform_user" {}
-//
-//resource "kubernetes_cluster_role_binding" "user" {
-//  metadata {
-//    name = "admin-user"
-//  }
-//
-//  role_ref {
-//    kind      = "ClusterRole"
-//    name      = "cluster-admin"
-//    api_group = "rbac.authorization.k8s.io"
-//  }
-//
-//  subject {
-//    kind      = "User"
-//    name      = data.google_client_openid_userinfo.terraform_user.email
-//    api_group = "rbac.authorization.k8s.io"
-//  }
-//
-//  subject {
-//    kind      = "Group"
-//    name      = "system:masters"
-//    api_group = "rbac.authorization.k8s.io"
-//  }
-//}
+resource "google_container_node_pool" "node_pool" {
+  provider = google-beta
+
+  name               = var.node_name
+  project            = var.project
+  location           = var.location
+  cluster            = var.cluster
+  initial_node_count = var.initial_node_count
+
+  autoscaling {
+    min_node_count  = var.min_node_count
+    max_node_count  = var.max_node_count
+    location_policy = var.location_policy
+  }
+
+  management {
+    auto_repair  = var.auto_repair
+    auto_upgrade = var.auto_upgrade
+  }
+
+  node_config {
+    image_type   = var.image_type
+    machine_type = var.machine_type
+
+    labels = {
+      all-pools-example = "true"
+    }
+
+
+    disk_size_gb = var.disk_size_gb
+    disk_type    = var.disk_type
+    preemptible  = var.preemptible
+
+
+  }
+
+  lifecycle {
+    ignore_changes        = [initial_node_count]
+
+  }
+
+  timeouts {
+    create = var.cluster_create_timeouts
+    update = var.cluster_update_timeouts
+    delete = var.cluster_delete_timeouts
+  }
+}
+
+resource "null_resource" "configure_kubectl" {
+  provisioner "local-exec" {
+    command = "gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
+
+    environment = {
+      KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""
+    }
+  }
+
+  depends_on = [google_container_node_pool.node_pool]
+}
+
+data "google_client_config" "client" {}
+data "google_client_openid_userinfo" "terraform_user" {}
+
+resource "kubernetes_cluster_role_binding" "user" {
+  metadata {
+    name = "admin-user"
+  }
+
+  role_ref {
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "User"
+    name      = data.google_client_openid_userinfo.terraform_user.email
+    api_group = "rbac.authorization.k8s.io"
+  }
+
+  subject {
+    kind      = "Group"
+    name      = "system:masters"
+    api_group = "rbac.authorization.k8s.io"
+  }
+}
+
+
 

@@ -8,6 +8,7 @@ module "labels" {
 
 resource "google_compute_firewall" "new-firewall" {
   name    = var.name
+
   network = var.network
 
   allow {
@@ -16,4 +17,6 @@ resource "google_compute_firewall" "new-firewall" {
   }
 
   source_ranges = var.source_ranges
+
+
 }
