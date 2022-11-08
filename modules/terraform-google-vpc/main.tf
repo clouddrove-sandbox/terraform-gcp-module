@@ -9,6 +9,7 @@ module "labels" {
 resource "google_compute_network" "vpc" {
   count = var.module_enabled ? 1 : 0
 
+  name        = var.name
   description = var.description
   project     = var.project
 
