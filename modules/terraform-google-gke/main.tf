@@ -185,14 +185,11 @@ resource "google_container_node_pool" "node_pool" {
     disk_size_gb = var.disk_size_gb
     disk_type    = var.disk_type
     preemptible  = var.preemptible
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-
-//    upgrade_settings = {
-//      max_surge       = var.max_surge
-//      max_unavailable = var.max_unavailable
-//    }
+    oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+    upgrade_settings = {
+      max_surge       = var.max_surge
+      max_unavailable = var.max_unavailable
+    }
   }
 
   lifecycle {

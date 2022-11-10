@@ -110,7 +110,7 @@ module "gke_cluster" {
   }
   cluster            = module.gke_cluster.name
   initial_node_count = "1"
-  //  secrets_encryption_kms_key = module.kms.key
+  secrets_encryption_kms_key = module.kms.key
   ###############################  autoscaling  #########################
 
   min_node_count  = "2"
