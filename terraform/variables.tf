@@ -1,13 +1,18 @@
-variable "gcp_credentials" {
-  type        = string
-  default     = ""
-  sensitive   = true
-  description = "Google Cloud service account credentials"
-}
-
 variable "gcp_project_id" {
   type        = string
   default     = "clouddrove"
+  description = "Google Cloud project ID"
+}
+
+variable "environment" {
+  type        = string
+  default     = "dev"
+  description = "Environment name"
+}
+
+variable "label_order" {
+  type        = list
+  default     = ["environment","name"]
   description = "Google Cloud project ID"
 }
 

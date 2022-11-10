@@ -1,7 +1,6 @@
 ########################## provider #########################################
 provider "google" {
   project     = var.gcp_project_id
-  credentials = var.gcp_credentials
   region      = var.gcp_region
   zone        = var.gcp_zone
 }
@@ -20,10 +19,10 @@ module "vpc" {
   source = "../modules/terraform-google-vpc"
 
   name        = "vpc"
-  environment = "network"
-  label_order = ["name", "environment"]
+  environment = var.environment
+  label_order = var.label_order
 
-  project                         = "clouddrove"
+  project                         = var.gcp_project_id
   auto_create_subnetworks         = false
   routing_mode                    = "GLOBAL"
   mtu                             = 1460
@@ -36,8 +35,8 @@ module "subnet" {
   source = "../modules/terraform-google-subnet"
 
   name        = "subnet"
-  environment = "network"
-  label_order = ["name", "environment"]
+  environment = var.environment
+  label_order = var.label_order
 
   private_ip_google_access           = true
   network                            = module.vpc.vpc.id
@@ -53,16 +52,19 @@ module "subnet" {
   dest_range                         = "0.0.0.0/0"
   next_hop_gateway                   = "default-internet-gateway"
   priority                           = 1000
+  secondary_ip_ranges   = [{"range_name": "services", "ip_cidr_range": "10.1.0.0/16"},{"range_name": "pods", "ip_cidr_range": "10.3.0.0/16"}]
 }
 
 ########################## kms ##############################################
 
 module "kms" {
   source           = "../modules/terraform-google-kms"
-  project_id       = "clouddrove"
-  keyring          = "deop-key"
+  environment = var.environment
+  label_order = var.label_order
+  project_id       = var.gcp_project_id
+  name          = "keyring"
   location         = var.location
-  keys             = ["test"]
+  keys             = ["dev-gke"]
   prevent_destroy  = true
   service_accounts = ["serviceAccount:service-943862527560@container-engine-robot.iam.gserviceaccount.com"]
   role             = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
@@ -77,8 +79,8 @@ module "gke_cluster" {
   source = "../modules/terraform-google-gke"
 
   name        = "gke"
-  environment = "Dev"
-  label_order = ["environment", "name"]
+  environment = var.environment
+  label_order = var.label_order
 
   project  = var.gcp_project_id
   location = var.location
@@ -86,8 +88,9 @@ module "gke_cluster" {
 
   network    = module.vpc.vpc.id
   subnetwork = module.subnet.public_subnetwork_name
-  //  cluster_secondary_range_name = ""
-  //  services_secondary_range_name = ""
+  cluster_secondary_range_name = "services"
+  services_secondary_range_name = "pods"
+  master_ipv4_cidr_block = "10.0.0.0/28"
 
   disable_public_endpoint = "false"
   resource_labels = {
@@ -96,29 +99,32 @@ module "gke_cluster" {
   cluster                    = module.gke_cluster.name
   initial_node_count         = "1"
   secrets_encryption_kms_key = module.kms.key
-  ###############################  autoscaling  #########################
 
-  min_node_count  = "2"
-  max_node_count  = "7"
-  location_policy = "BALANCED"
+  node_pools = {
+    dev-node-pool = {
+      node_name = "dev-node-pool"
+      location = var.location
+      initial_node_count = "2"
+      min_node_count  = "2"
+      max_node_count  = "7"
+      location_policy = "BALANCED"
+      auto_repair  = "true"
+      auto_upgrade = "false"
+      env_label = "dev"
+      image_type      = "cos_containerd"
+      machine_type    = "e2-medium"
+      disk_size_gb    = "50"
+      disk_type       = "pd-standard"
+      preemptible     = true
+      oauth_scopes = ["https://www.googleapis.com/auth/devstorage.read_only", "https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/monitoring"]
+      gce_ssh_user    = "default-user"
+      gce_ssh_pub_key = "~/.ssh/id_rsa.pub"
+      max_surge       = 1
+      max_unavailable = 1
+    }
+  }
 
-  ##################################### management #####################
-
-  auto_repair  = "true"
-  auto_upgrade = "false"
-
-  ##################################  node_config ##########################
-
-  image_type      = "cos_containerd"
-  machine_type    = "e2-medium"
-  disk_size_gb    = "50"
-  disk_type       = "pd-standard"
-  preemptible     = false
-  oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-  gce_ssh_user    = "default-user"
-  gce_ssh_pub_key = "~/.ssh/id_rsa.pub"
-//    max_surge       = 0
-//    max_unavailable = 0
+  
   ###############################  timeouts ###################################
 
   cluster_create_timeouts = "30m"

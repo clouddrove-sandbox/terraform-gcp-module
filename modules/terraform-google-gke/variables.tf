@@ -69,7 +69,7 @@ variable "http_load_balancing" {
 
 variable "enable_private_nodes" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "disable_public_endpoint" {
@@ -104,7 +104,7 @@ EOF
 
 variable "maintenance_start_time" {
   type    = string
-  default = "05:00"
+  default = "00:00"
 }
 
 variable "stub_domains" {
@@ -180,6 +180,11 @@ variable "enable_vertical_pod_autoscaling" {
 variable "services_secondary_range_name" {
   type    = string
   default = null
+}
+
+variable "env_label" {
+  type    = string
+  default = "dev"
 }
 
 variable "enable_workload_identity" {
@@ -347,7 +352,27 @@ variable "gce_ssh_pub_key" {
 
 }
 
+variable "release_channel" {
+  type = string
+  default     = "UNSPECIFIED"
+  description = "(Optional) Configuration options for the Release channel feature, which provide more control over automatic upgrades of your GKE clusters."
+
+}
+
 variable "oauth_scopes" {
   type    = list(string)
   default = []
+  description = "(Optional) Scopes that are used by NAP when creating node pools."
+}
+
+variable "node_pools" {
+  type        = any
+  default     = {}
+  description = "Map of node pools definitions to create"
+}
+
+variable "module_enabled" {
+  type        = bool
+  description = "(Optional) Whether or not to create resources within the module."
+  default     = true
 }

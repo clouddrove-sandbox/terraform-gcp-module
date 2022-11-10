@@ -13,6 +13,8 @@ locals {
 }
 
 resource "google_container_cluster" "cluster" {
+  count = var.module_enabled ? 1 : 0
+
   provider = google-beta
 
   name        = module.labels.id
@@ -22,7 +24,11 @@ resource "google_container_cluster" "cluster" {
   location   = var.location
   network    = var.network
   subnetwork = var.subnetwork
+  release_channel {
+    channel = var.release_channel
+  }
 
+  networking_mode  = "VPC_NATIVE"
   logging_service          = var.logging_service
   monitoring_service       = var.monitoring_service
   min_master_version       = local.kubernetes_version
@@ -121,14 +127,6 @@ resource "google_container_cluster" "cluster" {
       key_name = database_encryption.value
     }
   }
-  //
-  //  dynamic "workload_identity_config" {
-  //    for_each = var.workload_identity_config
-  //
-  //   content {
-  //    identity_namespace = "clouddrove.svc.id.goog"
-  //   }
-  //  }
 
   resource_labels = var.resource_labels
 }
@@ -154,46 +152,46 @@ data "google_container_engine_versions" "location" {
 
 
 resource "google_container_node_pool" "node_pool" {
-  provider = google-beta
+  for_each = { for k, v in var.node_pools : k => v if var.module_enabled }
+  provider = google
 
-  name               = var.node_name
+  name               = each.value.node_name
   project            = var.project
-  location           = var.location
-  cluster            = var.cluster
-  initial_node_count = var.initial_node_count
+  location           = each.value.location
+  cluster            = join("",google_container_cluster.cluster.*.name)
+  initial_node_count = each.value.initial_node_count
 
   autoscaling {
-    min_node_count  = var.min_node_count
-    max_node_count  = var.max_node_count
-    location_policy = var.location_policy
+    min_node_count  = each.value.min_node_count
+    max_node_count  = each.value.max_node_count
+    location_policy = each.value.location_policy
   }
 
   management {
-    auto_repair  = var.auto_repair
-    auto_upgrade = var.auto_upgrade
+    auto_repair  = each.value.auto_repair
+    auto_upgrade = each.value.auto_upgrade
+  }
+
+  upgrade_settings {
+    max_surge       = each.value.max_surge
+    max_unavailable = each.value.max_unavailable
   }
 
   node_config {
-    image_type   = var.image_type
-    machine_type = var.machine_type
+    image_type   = each.value.image_type
+    machine_type = each.value.machine_type
 
     labels = {
-      all-pools-example = "true"
+      environment = var.env_label
     }
 
 
-    disk_size_gb = var.disk_size_gb
-    disk_type    = var.disk_type
-    preemptible  = var.preemptible
-    oauth_scopes = var.oauth_scopes
-
-//    upgrade_settings = {
-//      max_surge       = var.max_surge
-//      max_unavailable = var.max_unavailable
-//    }
+    disk_size_gb = each.value.disk_size_gb
+    disk_type    = each.value.disk_type
+    preemptible  = each.value.preemptible
+    oauth_scopes = each.value.oauth_scopes
 
     metadata = {
-      ssh-keys                 = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key)}"
       disable-legacy-endpoints = true
     }
   }
@@ -212,7 +210,7 @@ resource "google_container_node_pool" "node_pool" {
 
 resource "null_resource" "configure_kubectl" {
   provisioner "local-exec" {
-    command = "gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
+    command = "gcloud container clusters get-credentials ${var.cluster_name} --region ${var.gcp_region} --project ${var.gcp_project_id}"
 
     environment = {
       KUBECONFIG = var.kubectl_config_path != "" ? var.kubectl_config_path : ""

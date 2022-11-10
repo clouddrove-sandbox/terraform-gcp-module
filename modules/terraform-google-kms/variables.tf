@@ -116,3 +116,9 @@ variable "role" {
   default     = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   description = "this role use for permissions"
 }
+
+variable "module_enabled" {
+  type        = bool
+  description = "(Optional) Whether or not to create resources within the module."
+  default     = true
+}
