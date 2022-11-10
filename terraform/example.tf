@@ -58,14 +58,14 @@ module "subnet" {
 ########################## kms ##############################################
 
 module "kms" {
-  source          = "../modules/terraform-google-kms"
-  project_id      = "clouddrove"
-  keyring         = "deop-key"
-  location        = var.location
-  keys            = ["test"]
-  prevent_destroy = true
+  source           = "../modules/terraform-google-kms"
+  project_id       = "clouddrove"
+  keyring          = "deop-key"
+  location         = var.location
+  keys             = ["test"]
+  prevent_destroy  = true
   service_accounts = ["serviceAccount:service-943862527560@container-engine-robot.iam.gserviceaccount.com"]
-  role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  role             = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
 
 ########################## firewall-ssh ##############################################
@@ -108,8 +108,8 @@ module "gke_cluster" {
   resource_labels = {
     environment = "testing"
   }
-  cluster            = module.gke_cluster.name
-  initial_node_count = "1"
+  cluster                    = module.gke_cluster.name
+  initial_node_count         = "1"
   secrets_encryption_kms_key = module.kms.key
   ###############################  autoscaling  #########################
 
@@ -129,8 +129,11 @@ module "gke_cluster" {
   disk_size_gb    = "50"
   disk_type       = "pd-standard"
   preemptible     = false
-//  max_surge       = 0
-//  max_unavailable = 0
+  oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  gce_ssh_user    = "default-user"
+  gce_ssh_pub_key = "~/.ssh/id_rsa.pub"
+//    max_surge       = 0
+//    max_unavailable = 0
   ###############################  timeouts ###################################
 
   cluster_create_timeouts = "30m"

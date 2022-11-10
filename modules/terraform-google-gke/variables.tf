@@ -333,3 +333,21 @@ variable "max_surge" {
   type    = number
   default = 0
 }
+
+variable "gce_ssh_user" {
+  type = string
+  default     = ""
+  description = "- (Optional) ssh user"
+}
+
+variable "gce_ssh_pub_key" {
+  type = string
+  default     = ""
+  description = "- (Optional) ssh pub key file"
+
+}
+
+variable "oauth_scopes" {
+  type    = list(string)
+  default = []
+}
