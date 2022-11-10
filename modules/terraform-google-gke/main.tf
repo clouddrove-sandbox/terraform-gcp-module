@@ -15,7 +15,7 @@ locals {
 resource "google_container_cluster" "cluster" {
   provider = google-beta
 
-  name        = var.name
+  name        = module.labels.id
   description = var.description
 
   project    = var.project

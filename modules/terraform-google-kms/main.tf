@@ -47,10 +47,10 @@ resource "google_kms_crypto_key" "key_ephemeral" {
 }
 
 resource "google_kms_crypto_key_iam_binding" "owners" {
-  count         = length(var.set_owners_for)
-  role          = "roles/owner"
-  crypto_key_id = local.keys_by_name[var.set_owners_for[count.index]]
-  members       = compact(split(",", var.owners[count.index]))
+  count         = length(var.service_accounts)
+  role          = var.role
+  crypto_key_id = join("", google_kms_crypto_key.key.*.id)
+  members       = compact(split(",", var.service_accounts[count.index]))
 }
 
 resource "google_kms_crypto_key_iam_binding" "decrypters" {

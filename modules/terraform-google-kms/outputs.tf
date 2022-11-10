@@ -21,3 +21,7 @@ output "keyring_name" {
   description = "Name of the keyring."
 
 }
+
+output "key" {
+  value = join("", google_kms_crypto_key.key.*.id)
+}

@@ -1,3 +1,5 @@
+#Module      : LABEL
+#Description : Terraform label module variables.
 variable "name" {
   type        = string
   default     = ""
@@ -8,6 +10,12 @@ variable "environment" {
   type        = string
   default     = ""
   description = "Environment (e.g. `prod`, `dev`, `staging`)."
+}
+
+variable "repository" {
+  type        = string
+  default     = "https://github.com/clouddrove/terraform-gcp-labels"
+  description = "Terraform current module repo"
 }
 
 variable "label_order" {
@@ -30,8 +38,8 @@ variable "extra_tags" {
 
 variable "managedby" {
   type        = string
-  default     = ""
-  description = "ManagedBy, eg ''."
+  default     = "hello@clouddrove.com"
+  description = "ManagedBy, eg 'CloudDrove'."
 }
 
 variable "enabled" {

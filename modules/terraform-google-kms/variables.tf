@@ -1,3 +1,21 @@
+variable "environment" {
+  type        = string
+  default     = ""
+  description = "Environment (e.g. `prod`, `dev`, `staging`)."
+}
+
+variable "label_order" {
+  type        = list(any)
+  default     = []
+  description = "Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] ."
+}
+
+variable "name" {
+  type        = string
+  default     = ""
+  description = "(Required) The name of this subnetwork, provided by the client when initially creating the resource. The name must be 1-63 characters long, and comply with [RFC1035](https://datatracker.ietf.org/doc/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression `[a-z]([-a-z0-9]*[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash."
+}
+
 variable "project_id" {
   type        = string
   default     = ""
@@ -40,7 +58,7 @@ variable "set_owners_for" {
   description = "Name of keys for which owners will be set."
 }
 
-variable "owners" {
+variable "service_accounts" {
   type        = list(string)
   default     = []
   description = "List of comma-separated owners for each key declared in set_owners_for."
@@ -91,4 +109,10 @@ variable "labels" {
   type        = map(string)
   default     = {}
   description = "Labels, provided as a map"
+}
+
+variable "role" {
+  type = string
+  default = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  description = "this role use for permissions"
 }

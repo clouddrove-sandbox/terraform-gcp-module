@@ -1,3 +1,9 @@
+## Managed By : CloudDrove
+## Copyright @ CloudDrove. All Right Reserved.
+
+#Module      : locals
+#Description : This terraform module is designed to generate consistent label names and tags for resources. You can use terraform-labels to implement a strict naming convention.
+
 locals {
   label_order_defaults = {
     label_order = ["environment", "name"]
@@ -19,13 +25,16 @@ locals {
   name        = var.enabled == true ? lower(format("%v", var.name)) : ""
   environment = var.enabled == true ? lower(format("%v", var.environment)) : ""
   managedby   = var.enabled == true ? lower(format("%v", var.managedby)) : ""
+  repository  = var.enabled == true ? lower(format("%v", var.repository)) : ""
   delimiter   = var.enabled == true ? lower(format("%v", var.delimiter)) : ""
   attributes  = var.enabled == true ? lower(format("%v", join(var.delimiter, compact(var.attributes)))) : ""
 
   tags_context = {
+    # For GCP we need `Name` to be disambiguated sine it has a special meaning
     name        = local.id
     environment = local.environment
     managedby   = local.managedby
+    repository  = local.repository
   }
 
   generated_tags = { for l in keys(local.tags_context) : title(l) => local.tags_context[l] if length(local.tags_context[l]) > 0 }

@@ -68,6 +68,12 @@ variable "log_config" {
   default     = []
 }
 
+variable "allow" {
+  type        = list(any)
+  description = "(Optional) The list of ALLOW rules specified by this firewall. Each rule specifies a protocol and port-range tuple that describes a permitted connection."
+  default     = []
+}
+
 ## IAM
 
 variable "iam" {
@@ -129,3 +135,74 @@ variable "module_depends_on" {
   default     = []
 }
 
+variable "address_type" {
+  type        = string
+  description = "(Optional) The type of the address to reserve."
+  default     = "EXTERNAL"
+}
+
+variable "purpose" {
+  type        = string
+  description = "(Optional) The purpose of the resource."
+  default     = "VPC_PEERING"
+}
+
+variable "prefix_length" {
+  type        = number
+  description = "(Optional) The prefix length of the IP range."
+  default     = 16
+}
+
+variable "private_service_connect_ip" {
+  type        = string
+  description = "(Optional) The IP address or beginning of the address range represented by this resource."
+  default     = ""
+}
+
+variable "source_ranges" {
+  type        = any
+  description = "(Optional) If source ranges are specified, the firewall will apply only to traffic that has source IP address in these ranges."
+  default     = []
+}
+
+variable "asn" {
+  type        = number
+  description = "Local BGP Autonomous System Number (ASN). Must be an RFC6996 private ASN, either 16-bit or 32-bit."
+  default     = 64514
+}
+
+variable "nat_ip_allocate_option" {
+  type        = string
+  description = "How external IPs should be allocated for this NAT."
+  default     = "MANUAL_ONLY"
+}
+
+variable "source_subnetwork_ip_ranges_to_nat" {
+  type        = string
+  description = "How NAT should be configured per Subnetwork."
+  default     = ""
+}
+
+variable "filter" {
+  type        = string
+  description = "Specifies the desired filtering of logs on this NAT."
+  default     = ""
+}
+
+variable "dest_range" {
+  type        = string
+  description = "The destination range of outgoing packets that this route applies to. Only IPv4 is supported."
+  default     = "0.0.0.0/0"
+}
+
+variable "next_hop_gateway" {
+  type        = string
+  description = "URL to a gateway that should handle matching packets."
+  default     = ""
+}
+
+variable "priority" {
+  type        = number
+  description = "The priority of this route."
+  default     = 1000
+}

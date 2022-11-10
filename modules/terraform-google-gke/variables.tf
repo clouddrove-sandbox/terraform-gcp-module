@@ -224,7 +224,7 @@ variable "gcp_region" {
 
 variable "cluster_name" {
   type    = string
-  default = "gke"
+  default = "dev-gke"
 }
 
 variable "node_name" {

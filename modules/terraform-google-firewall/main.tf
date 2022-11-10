@@ -7,8 +7,8 @@ module "labels" {
 }
 
 resource "google_compute_firewall" "new-firewall" {
-  name    = var.name
 
+  name    = module.labels.id
   network = var.network
 
   allow {
