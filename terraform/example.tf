@@ -68,21 +68,6 @@ module "kms" {
   role             = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
 
-########################## firewall-ssh ##############################################
-
-module "firewall-ssh" {
-  source = "../modules/terraform-google-firewall"
-
-  name        = "firewall-ssh"
-  environment = "Dev"
-  label_order = ["environment", "name"]
-
-  network       = module.vpc.vpc.id
-  protocol      = "tcp"
-  ports         = ["22"]
-  source_ranges = ["0.0.0.0/0"]
-}
-
 data "google_client_config" "client" {}
 data "google_client_openid_userinfo" "terraform_user" {}
 
@@ -158,17 +143,3 @@ data "template_file" "cluster_ca_certificate" {
   template = module.gke_cluster.cluster_ca_certificate
 }
 
-########################## gke_service_account ##############################################
-
-module "gke_service_account" {
-  source = "../modules/terraform-google-service-account"
-
-  name        = "service_account"
-  environment = "Dev"
-  label_order = ["environment", "name"]
-
-  project = var.gcp_project_id
-  length  = 16
-  special = false
-  upper   = false
-}
