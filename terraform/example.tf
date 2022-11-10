@@ -39,34 +39,34 @@ module "subnet" {
   environment = "network"
   label_order = ["name", "environment"]
 
-  private_ip_google_access = true
-  network   = module.vpc.vpc.id
-  address_type = "INTERNAL"
-  prefix_length = 16
-  purpose = "VPC_PEERING"
-  allow = [{"protocol":"tcp", "ports": ["1-65535"]}]
-  source_ranges = [var.ip_cidr_range]
-  asn = 64514
-  nat_ip_allocate_option = "MANUAL_ONLY"
+  private_ip_google_access           = true
+  network                            = module.vpc.vpc.id
+  address_type                       = "INTERNAL"
+  prefix_length                      = 16
+  purpose                            = "VPC_PEERING"
+  allow                              = [{ "protocol" : "tcp", "ports" : ["1-65535"] }]
+  source_ranges                      = [var.ip_cidr_range]
+  asn                                = 64514
+  nat_ip_allocate_option             = "MANUAL_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
-  filter = "ERRORS_ONLY"
-  dest_range = "0.0.0.0/0"
-  next_hop_gateway = "default-internet-gateway"
-  priority = 1000
+  filter                             = "ERRORS_ONLY"
+  dest_range                         = "0.0.0.0/0"
+  next_hop_gateway                   = "default-internet-gateway"
+  priority                           = 1000
 }
 
 ########################## kms ##############################################
 
-//module "kms" {
-//  source          = "../modules/terraform-google-kms"
-//  project_id      = "clouddrove"
-//  keyring         = "deop-key"
-//  location        = var.location
-//  keys            = ["test"]
-//  prevent_destroy = true
-//  service_accounts = ["serviceAccount:service-943862527560@container-engine-robot.iam.gserviceaccount.com"]
-//  role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-//}
+module "kms" {
+  source          = "../modules/terraform-google-kms"
+  project_id      = "clouddrove"
+  keyring         = "deop-key"
+  location        = var.location
+  keys            = ["test"]
+  prevent_destroy = true
+  service_accounts = ["serviceAccount:service-943862527560@container-engine-robot.iam.gserviceaccount.com"]
+  role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+}
 
 ########################## firewall-ssh ##############################################
 
@@ -110,26 +110,27 @@ module "gke_cluster" {
   }
   cluster            = module.gke_cluster.name
   initial_node_count = "1"
-//  secrets_encryption_kms_key = module.kms.key
+  //  secrets_encryption_kms_key = module.kms.key
   ###############################  autoscaling  #########################
 
-  min_node_count     = "2"
-  max_node_count     = "7"
-  location_policy    = "BALANCED"
+  min_node_count  = "2"
+  max_node_count  = "7"
+  location_policy = "BALANCED"
 
   ##################################### management #####################
 
-  auto_repair        = "true"
-  auto_upgrade       = "false"
+  auto_repair  = "true"
+  auto_upgrade = "false"
 
-##################################  node_config ##########################
+  ##################################  node_config ##########################
 
-  image_type              = "cos_containerd"
-  machine_type            = "e2-medium"
-  disk_size_gb            = "50"
-  disk_type               = "pd-standard"
-  preemptible             = false
-
+  image_type      = "cos_containerd"
+  machine_type    = "e2-medium"
+  disk_size_gb    = "50"
+  disk_type       = "pd-standard"
+  preemptible     = false
+//  max_surge       = 0
+//  max_unavailable = 0
   ###############################  timeouts ###################################
 
   cluster_create_timeouts = "30m"

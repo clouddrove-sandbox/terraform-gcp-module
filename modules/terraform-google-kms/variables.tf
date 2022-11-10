@@ -112,7 +112,7 @@ variable "labels" {
 }
 
 variable "role" {
-  type = string
-  default = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  type        = string
+  default     = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   description = "this role use for permissions"
 }

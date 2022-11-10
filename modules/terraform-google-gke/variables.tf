@@ -323,3 +323,13 @@ variable "kubectl_config_path" {
   type        = string
   default     = ""
 }
+
+variable "max_unavailable" {
+  type    = number
+  default = 0
+}
+
+variable "max_surge" {
+  type    = number
+  default = 0
+}
